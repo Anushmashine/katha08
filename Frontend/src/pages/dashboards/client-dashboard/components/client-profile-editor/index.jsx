@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { User, Heart, Target, Settings, Save, AlertTriangle, Upload, X, Camera, CheckCircle, AlertCircle } from 'lucide-react';
+import { Save, AlertTriangle, Upload, X, Camera } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { cn } from '@/utils/cn';
@@ -8,26 +8,21 @@ const ClientProfileEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [profileData, setProfileData] = useState({});
   const [initialData, setInitialData] = useState({});
-  const [errors, setErrors] = useState({});
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   
-  // Logic from PersonalInfoSection is now here
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Fetch initial data (you can connect this to your real API later)
+  // Fetch initial data (you can connect this to a real API)
   useEffect(() => {
     const fetchProfileData = async () => {
       const mockData = {
         firstName: 'Alex',
         lastName: 'Doe',
         email: 'alex.doe@example.com',
-        emailVerified: true,
         phone: '123-456-7890',
-        phoneVerified: false,
         profilePicture: 'https://via.placeholder.com/150',
-        profileVisibility: 'coaches-only',
       };
       setProfileData(mockData);
       setInitialData(mockData);
@@ -36,12 +31,13 @@ const ClientProfileEditor = () => {
     fetchProfileData();
   }, []);
   
-  // Check for unsaved changes when profileData is modified
+  // Detects if any changes have been made to the form
   useEffect(() => {
     const hasUnsavedChanges = JSON.stringify(profileData) !== JSON.stringify(initialData);
     setUnsavedChanges(hasUnsavedChanges);
   }, [profileData, initialData]);
 
+  // Updates the state when you type in a form field
   const updateData = useCallback((newData) => {
     setProfileData(prev => ({ ...prev, ...newData }));
   }, []);
@@ -57,18 +53,52 @@ const ClientProfileEditor = () => {
     }
   };
 
+  // ==========================================================
+  // --- THIS IS THE FULLY IMPLEMENTED SAVE FUNCTION ---
+  // ==========================================================
   const handleSave = async () => {
-    // Your existing save logic...
-    console.log('Saving profile data:', profileData);
+    setIsSaving(true);
+    const token = localStorage.getItem('accessToken');
+
+    if (!token) {
+      alert("You are not logged in. Please log in to save your profile.");
+      setIsSaving(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:4028/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'An unknown error occurred.');
+      }
+
+      alert('Profile saved successfully!');
+      setInitialData(profileData); // Resets the "unsaved changes" state
+
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      alert(`Error saving profile: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
   
-  // The rest of your helper functions from PersonalInfoSection
+  // Helper functions for drag-and-drop
   const handleDrop = (e) => { e.preventDefault(); setDragActive(false); handleFileUpload(e.dataTransfer.files[0]); };
   const handleDragOver = (e) => { e.preventDefault(); setDragActive(true); };
   const handleDragLeave = (e) => { e.preventDefault(); setDragActive(false); };
   const removeProfilePicture = () => { setPreviewUrl(null); updateData({ profilePicture: null }); };
 
-  // This is the simplified JSX for your page
   return (
     <div>
       <div className="mb-8">
@@ -78,20 +108,17 @@ const ClientProfileEditor = () => {
         </p>
       </div>
 
-      {/* The form from PersonalInfoSection is now directly here */}
       <main className="space-y-6">
-        {/* Profile Picture Upload */}
+        {/* Profile Picture Upload Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Profile Picture</h3>
           <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
-            {/* Avatar Preview */}
             <div className="relative">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
                 {previewUrl ? <img src={previewUrl} alt="Profile preview" className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-gray-400" />}
               </div>
               {previewUrl && <button onClick={removeProfilePicture} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X className="w-4 h-4" /></button>}
             </div>
-            {/* Upload Area */}
             <div className="flex-1">
               <div onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} className={cn("border-2 border-dashed rounded-lg p-6 text-center", dragActive ? "border-blue-400 bg-blue-50" : "border-gray-300")}>
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -111,10 +138,20 @@ const ClientProfileEditor = () => {
         </div>
 
         {/* Contact Information */}
-        <div>
+        <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
           <Input label="Email Address" type="email" required value={profileData.email || ''} onChange={(e) => updateData({ email: e.target.value })} />
-          {/* You can add back the verification status logic here if needed */}
+          
+          {/* ================================= */}
+          {/* --- NEW PHONE NUMBER INPUT --- */}
+          <Input
+            label="Phone Number (Optional)"
+            type="tel"
+            value={profileData.phone || ''}
+            onChange={(e) => updateData({ phone: e.target.value })}
+            placeholder="+1 (555) 123-4567"
+          />
+          {/* ================================= */}
         </div>
       </main>
 
