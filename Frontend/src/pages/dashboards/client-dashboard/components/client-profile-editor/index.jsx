@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Save, AlertTriangle, Upload, X, Camera } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { cn } from '@/utils/cn';
+import Button from '../../../../../components/ui/Button';
+import Input from '../../../../../components/ui/Input';
+import { cn } from '../../../../../utils/cn';
 
 const ClientProfileEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -14,30 +14,56 @@ const ClientProfileEditor = () => {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Fetch initial data (you can connect this to a real API)
+  // ==========================================================
+  // --- THIS IS THE CORRECTED DATA FETCHING LOGIC ---
+  // ==========================================================
   useEffect(() => {
     const fetchProfileData = async () => {
-      const mockData = {
-        firstName: 'Alex',
-        lastName: 'Doe',
-        email: 'alex.doe@example.com',
-        phone: '123-456-7890',
-        profilePicture: 'https://via.placeholder.com/150',
-      };
-      setProfileData(mockData);
-      setInitialData(mockData);
-      setPreviewUrl(mockData.profilePicture);
+      // Get the token the user received when they logged in
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.error("Authentication Error: No token found. Please log in.");
+        // You could redirect to login page here if you want
+        return;
+      }
+
+      try {
+        // Fetch data from your backend's /me endpoint
+        const response = await fetch('http://localhost:4028/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data from the server.');
+        }
+
+        const data = await response.json();
+        
+        // Populate the form with the REAL data from the database
+        setProfileData(data.user); 
+        setInitialData(data.user);
+        setPreviewUrl(data.user.profilePicture);
+
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+        // Handle error (e.g., show a message to the user)
+      }
     };
+
     fetchProfileData();
-  }, []);
+  }, []); // The empty array [] ensures this runs only once when the page loads
+
   
   // Detects if any changes have been made to the form
   useEffect(() => {
+    // We check against initialData to see if the user has typed anything new
     const hasUnsavedChanges = JSON.stringify(profileData) !== JSON.stringify(initialData);
     setUnsavedChanges(hasUnsavedChanges);
   }, [profileData, initialData]);
 
-  // Updates the state when you type in a form field
+  // Updates the state in real-time as you type in a form field
   const updateData = useCallback((newData) => {
     setProfileData(prev => ({ ...prev, ...newData }));
   }, []);
@@ -53,9 +79,7 @@ const ClientProfileEditor = () => {
     }
   };
 
-  // ==========================================================
-  // --- THIS IS THE FULLY IMPLEMENTED SAVE FUNCTION ---
-  // ==========================================================
+  // Saves the updated data to the backend
   const handleSave = async () => {
     setIsSaving(true);
     const token = localStorage.getItem('accessToken');
@@ -83,7 +107,11 @@ const ClientProfileEditor = () => {
       }
 
       alert('Profile saved successfully!');
-      setInitialData(profileData); // Resets the "unsaved changes" state
+      
+      // IMPORTANT: Update the state with the fresh data from the server
+      // This ensures the page is in sync after saving
+      setProfileData(data.user);
+      setInitialData(data.user);
 
     } catch (error) {
       console.error('Failed to save profile:', error);
@@ -124,8 +152,8 @@ const ClientProfileEditor = () => {
                 <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-sm text-gray-600"><span className="font-medium">Click to upload</span> or drag and drop</p>
                 <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current.click()} className="mt-4">Choose File</Button>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={(e) => handleFileUpload(e.target.files[0])} className="hidden" />
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current && fileInputRef.current.click()} className="mt-4">Choose File</Button>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={(e) => e.target.files && handleFileUpload(e.target.files[0])} className="hidden" />
               </div>
             </div>
           </div>
@@ -141,9 +169,6 @@ const ClientProfileEditor = () => {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
           <Input label="Email Address" type="email" required value={profileData.email || ''} onChange={(e) => updateData({ email: e.target.value })} />
-          
-          {/* ================================= */}
-          {/* --- NEW PHONE NUMBER INPUT --- */}
           <Input
             label="Phone Number (Optional)"
             type="tel"
@@ -151,7 +176,6 @@ const ClientProfileEditor = () => {
             onChange={(e) => updateData({ phone: e.target.value })}
             placeholder="+1 (555) 123-4567"
           />
-          {/* ================================= */}
         </div>
       </main>
 
