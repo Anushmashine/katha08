@@ -6,6 +6,7 @@ const upload = require('../middleware/upload');
 
 const coachProfileController = require('../controllers/coachProfileController');
 const sessionController = require('../controllers/sessionController'); 
+const CoachProfile = require('../models/CoachProfile');
 
 const { 
     getFollowStatus,    // <-- ADD THIS
@@ -63,3 +64,5 @@ router.post('/public/:coachId/follow', skipAuthForOptions, authenticate, followC
 router.delete('/public/:coachId/follow', skipAuthForOptions, authenticate, unfollowCoach);
 
 module.exports = router;
+
+

@@ -25,9 +25,11 @@ const Follow = require('./models/Follow'); // <-- NEW IMPORT
 // ... (no changes)
 // ==========================================
 const authRoutes = require('./routes/auth');
+const coachProfileRoutes = require('./routes/coachprofile.js');
 const eventRoutes = require('./routes/events');
-const coachProfileRoutes = require('./routes/coachProfile');
 const profileRoutes = require('./routes/fetchCoachProfiles');
+const followRoutes = require('./routes/followRoutes');
+
 
 const app = express();
 
@@ -106,6 +108,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/coach', coachProfileRoutes);
 app.use('/api/profiles', profileRoutes);
+app.use('/api/follow', followRoutes);
+
 
 app.get('/', (req, res) => res.send('CoachFlow API running 🚀'));
 
