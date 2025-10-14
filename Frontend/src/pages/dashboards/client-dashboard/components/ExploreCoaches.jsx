@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Eye, Filter } from 'lucide-react';
 import { useBreadcrumb } from '@/components/ui/BreadcrumbNavigation';
-import { useAuth } from '@/auth/AuthContext'; 
-import CoachPublicProfile from '../../shared/coach-public-profile'; 
+import { useAuth } from '@/auth/AuthContext';
+import CoachPublicProfile from '../../shared/coach-public-profile';
 import axios from 'axios';
 
 // === Debounce hook ===
@@ -17,7 +17,7 @@ const useDebounce = (value, delay) => {
 
 // === Backend URLs ===
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4028";
-const PUBLIC_PROFILES_URL = `${API_BASE_URL}/api/profiles/coaches`; 
+const PUBLIC_PROFILES_URL = `${API_BASE_URL}/api/profiles/coaches`;
 
 // Helper for full image URLs
 const getFullImageSrc = (path) => {
@@ -29,14 +29,14 @@ const getFullImageSrc = (path) => {
 
 const ExploreCoaches = () => {
     const { setBreadcrumb } = useBreadcrumb();
-    const { isAuthenticated, user } = useAuth(); 
-    
+    const { isAuthenticated, user } = useAuth();
+
     const [coaches, setCoaches] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedCoach, setSelectedCoach] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedAudience, setSelectedAudience] = useState('');
-    const [activeTab, setActiveTab] = useState('all'); 
+    const [activeTab, setActiveTab] = useState('all');
     const [error, setError] = useState(null);
 
     const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -54,40 +54,27 @@ const ExploreCoaches = () => {
             url = `${PUBLIC_PROFILES_URL}?search=${debouncedSearchTerm}&audience=${selectedAudience}`;
         } else {
             // Followed coaches
-            const userId = user?.id || localStorage.getItem('userId');
-            if (!userId) {
+            url = `${API_BASE_URL}/api/profiles/followed`;
+            const token = localStorage.getItem('accessToken');
+            headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            if (!token) {
                 setError("Please log in to view your followed coaches.");
                 setIsLoading(false);
                 return;
             }
-
-            url = `${API_BASE_URL}/api/follow/followed/${userId}`;
-            const token = localStorage.getItem('accessToken');
-            headers = token ? { Authorization: `Bearer ${token}` } : {};
         }
 
         try {
             const response = await axios.get(url, { headers, withCredentials: true });
-            
-            let coachList = [];
-            if (activeTab === 'all') {
-                coachList = response.data.coaches || [];
-            } else {
-                // Map followed coaches response to expected frontend structure
-                coachList = (response.data || []).map(follow => {
-                    const coachUser = follow.followingCoach;
-                    const coachProfile = coachUser?.CoachProfile || {};
-                    return {
-                        id: coachUser?.id,
-                        firstName: coachUser?.firstName,
-                        lastName: coachUser?.lastName,
-                        profilePicture: coachProfile?.profilePicture,
-                        title: coachProfile?.title || 'Coach'
-                    };
-                });
-            }
+
+            // ✅ **THIS IS THE FIX**
+            // Both API endpoints return data in the format { coaches: [...] }.
+            // This single line now correctly handles the response for BOTH tabs.
+            const coachList = response.data.coaches || [];
 
             setCoaches(coachList);
+
         } catch (err) {
             console.error(`Failed to fetch ${activeTab} coaches:`, err);
             setError(`Failed to load coaches: ${err.response?.data?.error || err.message}`);
@@ -113,7 +100,7 @@ const ExploreCoaches = () => {
     if (selectedCoach) {
         return <CoachPublicProfile coachId={selectedCoach.id} />;
     }
-    
+
     const isFilterDisabled = activeTab === 'followed';
 
     return (
@@ -123,8 +110,8 @@ const ExploreCoaches = () => {
             <div className="flex border-b border-gray-200 mb-4">
                 <button
                     className={`px-4 py-2 text-base font-medium transition-colors duration-200 cursor-pointer ${
-                        activeTab === 'all' 
-                            ? 'text-purple-700 border-b-2 border-purple-700' 
+                        activeTab === 'all'
+                            ? 'text-purple-700 border-b-2 border-purple-700'
                             : 'text-gray-500 hover:text-purple-600'
                     }`}
                     onClick={() => setActiveTab('all')}
@@ -133,8 +120,8 @@ const ExploreCoaches = () => {
                 </button>
                 <button
                     className={`px-4 py-2 text-base font-medium transition-colors duration-200 cursor-pointer ${
-                        activeTab === 'followed' 
-                            ? 'text-purple-700 border-b-2 border-purple-700' 
+                        activeTab === 'followed'
+                            ? 'text-purple-700 border-b-2 border-purple-700'
                             : 'text-gray-500 hover:text-purple-600'
                     }`}
                     onClick={() => setActiveTab('followed')}
@@ -164,8 +151,8 @@ const ExploreCoaches = () => {
                         <label className="text-sm font-medium text-gray-700">Filter by Target Audience</label>
                         <div className="relative mt-1">
                             <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <select 
-                                value={selectedAudience} 
+                            <select
+                                value={selectedAudience}
                                 onChange={(e) => setSelectedAudience(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 border rounded-lg appearance-none"
                                 disabled={isFilterDisabled}
@@ -198,19 +185,19 @@ const ExploreCoaches = () => {
                         </thead>
                         <tbody className="divide-y">
                             {coaches.length > 0 ? coaches.map(coach => (
-                                <tr key={coach.id}> 
+                                <tr key={coach.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <img className="h-10 w-10 rounded-full" 
-                                            src={getFullImageSrc(coach.profilePicture) || `https://ui-avatars.com/api/?name=${coach.firstName}+${coach.lastName}&background=random`} 
-                                            alt={`${coach.firstName} ${coach.lastName}`} 
+                                        <img className="h-10 w-10 rounded-full"
+                                            src={getFullImageSrc(coach.profilePicture) || `https://ui-avatars.com/api/?name=${coach.firstName}+${coach.lastName}&background=random`}
+                                            alt={`${coach.firstName} ${coach.lastName}`}
                                         />
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900">{coach.firstName} {coach.lastName}</div>
-                                        <div className="text-sm text-purple-600">{coach.title}</div> 
+                                        <div className="text-sm text-purple-600">{coach.title}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button 
+                                        <button
                                             onClick={() => setSelectedCoach(coach)}
                                             className="w-full flex items-center justify-center py-2 px-4 border rounded-md text-sm font-medium hover:bg-gray-50"
                                         >
@@ -221,8 +208,8 @@ const ExploreCoaches = () => {
                             )) : (
                                 <tr>
                                     <td colSpan="3" className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
-                                        {activeTab === 'all' 
-                                            ? 'No coaches found matching your criteria.' 
+                                        {activeTab === 'all'
+                                            ? 'No coaches found matching your criteria.'
                                             : 'You are not currently following any coaches.'}
                                     </td>
                                 </tr>

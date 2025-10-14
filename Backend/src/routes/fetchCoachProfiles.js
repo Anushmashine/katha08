@@ -17,7 +17,7 @@ router.get('/coaches', getAllCoachProfiles);
 
 // 2. Route to get the client's followed coaches (Protected Route)
 // GET /api/profiles/followed
-router.get('/followed', authenticate, getFollowedCoaches); // <-- NEW ROUTE ADDED
+router.get('/followed', authenticate, getFollowedCoaches);// <-- NEW ROUTE ADDED
 
 // 3. Route to get a specific coach's public profile (Must be last)
 // GET /api/profiles/:id
