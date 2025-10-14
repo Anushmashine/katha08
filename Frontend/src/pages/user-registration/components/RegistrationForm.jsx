@@ -171,7 +171,7 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
       <div className="text-center">
         <p className="text-sm text-gray-600">
           Already have an account?{' '}
-          <Link to="/user-login" className="text-indigo-600 hover:underline font-medium">
+          <Link to="/login" className="text-indigo-600 hover:underline font-medium">
             Sign in here
           </Link>
         </p>
