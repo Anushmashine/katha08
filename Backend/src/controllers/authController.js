@@ -2,7 +2,7 @@
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
-const axios = require('axios');
+// const axios = require('axios'); // No longer needed
 const { Op } = require('sequelize');
 const { customAlphabet } = require('nanoid');
 const User = require('../models/user');
@@ -121,76 +121,13 @@ async function login(req, res) {
 }
 
 // ==============================
-// Social Login
+// Social Login (REMOVED)
 // ==============================
+/*
 async function socialLogin(req, res) {
-    try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
-
-        const auth0Token = authHeader.split(' ')[1];
-        const userInfoResponse = await axios.get(
-            `https://${process.env.AUTH0_DOMAIN}/userinfo`,
-            { headers: { Authorization: `Bearer ${auth0Token}` } }
-        );
-
-        const userInfo = userInfoResponse.data;
-        if (!userInfo.email)
-            return res.status(400).json({ error: 'Email not returned by Auth0' });
-
-        const email = userInfo.email.toLowerCase().trim();
-        let user = await User.findOne({ where: { email } });
-
-        if (!user) {
-            user = await User.create({
-                id: uuidv4(),
-                firstName: userInfo.given_name || '',
-                lastName: userInfo.family_name || '',
-                email,
-                email_verified: userInfo.email_verified || true,
-                provider: userInfo.sub.split('|')[0],
-                oauth_id: userInfo.sub,
-                roles: ['client'],
-            });
-            await ClientProfile.create({ userId: user.id });
-        }
-
-        const accessToken = signAccessToken({
-            userId: user.id,
-            email: user.email,
-            roles: user.roles,
-        });
-        
-        const isProduction = process.env.NODE_ENV === 'production';
-        const cookieOptions = getCookieOptions(isProduction);
-
-        res.clearCookie(REFRESH_COOKIE_NAME, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'None' : 'Lax',
-        });
-        
-        res.cookie(ACCESS_COOKIE_NAME, accessToken, {
-            ...cookieOptions,
-            maxAge: 1000 * 60 * 60 * 24 * 7, 
-        });
-
-        res.json({
-            accessToken,
-            user: {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                phone: user.phone || null,
-                roles: user.roles,
-            },
-        });
-    } catch (err) {
-        console.error('Auth0 login error:', err.response?.data || err);
-        res.status(500).json({ error: 'Failed to process social login' });
-    }
+    // ... (All social login code is removed from here)
 }
+*/
 
 // ==============================
 // Get current user (with profiles)
@@ -412,7 +349,7 @@ async function resetPassword(req, res) {
 module.exports = {
     register,
     login,
-    socialLogin,
+    // socialLogin, // Removed from exports
     logout,
     me,
     verifyEmail,

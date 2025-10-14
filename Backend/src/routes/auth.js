@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const jwksClient = require('jwks-rsa');
+// const jwt = require('jsonwebtoken'); // No longer needed for social login
+// const jwksClient = require('jwks-rsa'); // No longer needed for social login
 
 // VITAL CONTROLLERS
 const auth = require('../controllers/authController');
@@ -14,6 +14,7 @@ const { authLimiter } = require('../middleware/rateLimiter');
 const uploadMiddleware = require('../middleware/upload');
 
 // ... (keep all your JWKS and Auth0 verification code) ...
+/* // Commenting out the Auth0 specific code
 const client = jwksClient({
   jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
 });
@@ -50,6 +51,7 @@ const verifyAuth0Token = (req, res, next) => {
     }
   );
 };
+*/
 
 
 // ==============================
@@ -57,7 +59,7 @@ const verifyAuth0Token = (req, res, next) => {
 // ==============================
 router.post('/register', authLimiter, auth.register);
 router.post('/login', authLimiter, auth.login);
-router.post('/social-login', authLimiter, verifyAuth0Token, auth.socialLogin);
+// router.post('/social-login', authLimiter, verifyAuth0Token, auth.socialLogin); // Social login route commented out
 
 router.post('/send-verification', authLimiter, auth.resendVerification);
 router.post('/verify-email', auth.verifyEmail);
