@@ -6,7 +6,10 @@ import fs from 'fs';
 import User from '../models/user.js'; 
 import CoachProfile from '../models/CoachProfile.js'; 
 import ClientProfile from '../models/ClientProfile.js'; 
+<<<<<<< HEAD
 import Event from '../models/Event.js'; 
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 import Testimonial from '../models/Testimonial.js'; 
 import Session from '../models/Session.js'; 
 import Follow from '../models/Follow.js'; 
@@ -73,6 +76,11 @@ export const getCoachProfile = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+// ... (omitted imports and helper functions)
+
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 // ==============================
 // UPDATE Coach Profile 
 // ==============================
@@ -90,24 +98,65 @@ export const updateCoachProfile = async (req, res) => {
             yearsOfExperience, 
             dateOfBirth, gender, ethnicity, country,
             linkedinUrl, twitterUrl, instagramUrl, facebookUrl,
+<<<<<<< HEAD
             pricing, availability
         } = req.body; 
 
         await user.update({ firstName, lastName, email, phone });
+=======
+            // The JSON fields (now strings in req.body due to FormData)
+            specialties, certifications, education 
+            // pricing, availability (removed from the payload in the previous step)
+        } = req.body; 
+
+        // ⚠️ CRITICAL FIX 1: Add logic to handle req.file and update User.profilePicture
+        const userData = { firstName, lastName, email, phone };
+
+        if (req.file) {
+            // A new file was uploaded via the FormData request
+            userData.profilePicture = `/uploads/${req.file.filename}`;
+        } else if (req.body.profilePicture === 'null' || req.body.profilePicture === '') {
+            // The user removed the picture (sent 'null' or empty string)
+            userData.profilePicture = null;
+        } else if (req.body.profilePicture) {
+            // The user sent the existing path/URL, keep it.
+            userData.profilePicture = req.body.profilePicture;
+        }
+        
+        // Update User Model (Handles core user fields and profilePicture)
+        await user.update(userData); // ✅ FIX: This now updates the profilePicture column
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 
         let coachProfile = user.CoachProfile;
         if (!coachProfile) coachProfile = await CoachProfile.create({ userId });
 
+<<<<<<< HEAD
+=======
+        // Update CoachProfile Model (Handles coach-specific fields, including JSON strings)
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         await coachProfile.update({
             professionalTitle,
             bio, 
             yearsOfExperience: parseInt(yearsOfExperience) || 0,
             dateOfBirth, gender, ethnicity, country,
             linkedinUrl, twitterUrl, instagramUrl, facebookUrl,
+<<<<<<< HEAD
             pricing: pricing || '{}',
             availability: availability || '{}'
         });
 
+=======
+            // JSON fields from req.body (already stringified on frontend)
+            specialties: specialties, 
+            certifications: certifications, 
+            education: education,
+            // ... (remove pricing/availability if they aren't meant to be here)
+            // pricing: pricing || '{}', 
+            // availability: availability || '{}'
+        });
+
+        // ⚠️ CRITICAL FIX 2: Fetch and return the updated user object with the new profilePicture value
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         const updatedUser = await User.findByPk(userId, {
             include: [
                 { 
@@ -121,12 +170,19 @@ export const updateCoachProfile = async (req, res) => {
 
         const plainUpdatedUser = updatedUser.get({ plain: true });
         
+<<<<<<< HEAD
+=======
+        // Ensure JSON fields are parsed before sending back
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         if (plainUpdatedUser.CoachProfile) {
             plainUpdatedUser.CoachProfile.specialties = safeParse(plainUpdatedUser.CoachProfile.specialties);
             plainUpdatedUser.CoachProfile.education = safeParse(plainUpdatedUser.CoachProfile.education);
             plainUpdatedUser.CoachProfile.certifications = safeParse(plainUpdatedUser.CoachProfile.certifications);
+<<<<<<< HEAD
             plainUpdatedUser.CoachProfile.pricing = safeParse(plainUpdatedUser.CoachProfile.pricing);
             plainUpdatedUser.CoachProfile.availability = safeParse(plainUpdatedUser.CoachProfile.availability);
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         }
 
         res.json({ user: plainUpdatedUser });
@@ -135,7 +191,11 @@ export const updateCoachProfile = async (req, res) => {
         res.status(500).json({ error: 'Failed to update profile' });
     }
 };
+<<<<<<< HEAD
 
+=======
+// ... (rest of file)
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 // ==============================
 // ADD Item (certification/education/specialties)
 // ==============================
@@ -254,12 +314,19 @@ export const uploadProfilePicture = async (req, res) => {
 };
 
 // ==============================
+<<<<<<< HEAD
 // GET Public Coach Profile (by ID)
+=======
+// GET Public Coach Profile (by ID) - FIXED
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 // ==============================
 export const getPublicCoachProfile = async (req, res) => { 
   try {
     const coachId = req.params.id;
+<<<<<<< HEAD
     console.log("Fetching public coach profile for:", coachId);
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 
     // Step 1: Find the coach profile
     const coachProfile = await CoachProfile.findOne({
@@ -269,6 +336,7 @@ export const getPublicCoachProfile = async (req, res) => {
           model: User,
           as: 'user', 
           attributes: ['id', 'firstName', 'lastName', 'email', 'phone', 'profilePicture'], 
+<<<<<<< HEAD
           include: [
             {
               model: Event,
@@ -278,15 +346,24 @@ export const getPublicCoachProfile = async (req, res) => {
               attributes: ['id', 'title', 'description', 'type', 'date', 'time', 'duration', 'price'],
             },
           ],
+=======
+          // 🚨 FIX: REMOVED the invalid Event include here
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         },
         { // Testimonials received by this coach
           model: Testimonial,
           as: 'testimonials',
           required: false,
           attributes: ['id', 'clientId', 'clientTitle', 'rating', 'content', 'date', 'sessionType'], 
+<<<<<<< HEAD
           include: [{ // Include client (User) details for avatar/name
             model: User,
             as: 'clientUser', // ALIAS from server.js
+=======
+          include: [{ 
+            model: User,
+            as: 'clientUser', 
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
             attributes: ['id', 'firstName', 'lastName', 'profilePicture'],
           }]
         },
@@ -311,7 +388,10 @@ export const getPublicCoachProfile = async (req, res) => {
     if (plainCoachProfile.pricing) plainCoachProfile.pricing = safeParse(plainCoachProfile.pricing); 
     if (plainCoachProfile.availability) plainCoachProfile.availability = safeParse(plainCoachProfile.availability);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
     const user = plainCoachProfile.user;
 
     // Format testimonials to include the client's name/avatar from the User model
@@ -335,7 +415,11 @@ export const getPublicCoachProfile = async (req, res) => {
       email: user.email,
       phone: user.phone,
       profileImage: plainCoachProfile.profilePicture || user.profilePicture, 
+<<<<<<< HEAD
       events: user.events || [], 
+=======
+      // 🚨 FIX: REMOVED events: user.events || [],
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
       testimonials: formattedTestimonials,
       availableSessions: plainCoachProfile.sessions || [], 
       title: plainCoachProfile.professionalTitle,
@@ -348,7 +432,10 @@ export const getPublicCoachProfile = async (req, res) => {
       isAvailable: true,
       avgResponseTime: plainCoachProfile.responseTime || 'within-4h',
       timezone: plainCoachProfile.availability?.timezone || 'UTC',
+<<<<<<< HEAD
       // Get starting price from pricing JSON or look at the cheapest session
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
       startingPrice: plainCoachProfile.pricing?.individual || plainCoachProfile.sessions?.[0]?.price || 0,
       
       // PARSED LIST FIELDS
@@ -375,11 +462,16 @@ export const getPublicCoachProfile = async (req, res) => {
 };
 
 // ==============================
+<<<<<<< HEAD
 // GET All Coach Profiles (for client discovery)
+=======
+// GET All Coach Profiles (for client discovery) - FIXED
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 // ===================================
 export const getAllCoachProfiles = async (req, res) => { 
   try {
     const { search, audience } = req.query;
+<<<<<<< HEAD
     const whereClause = {
       roles: { [Op.like]: '%"coach"%' }, // Ensure only users with 'coach' role are selected
       [Op.or]: []
@@ -398,10 +490,17 @@ export const getAllCoachProfiles = async (req, res) => {
     const coaches = await User.findAll({
         where: whereClause,
         attributes: ['id', 'firstName', 'lastName', 'email', 'profilePicture'],
+=======
+    const whereClause = { /* ... omitted ... */ };
+
+    const coaches = await User.findAll({
+        // ... (omitted User attributes and where clause)
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         include: [
             { 
                 model: CoachProfile, 
                 as: 'CoachProfile',
+<<<<<<< HEAD
                 // Filter by audience specialty
                 where: audience ? { specialties: { [Op.like]: `%${audience}%` } } : {},
                 required: true,
@@ -422,6 +521,26 @@ export const getAllCoachProfiles = async (req, res) => {
             },
         ],
         // Grouping is necessary for aggregation (like counting testimonials)
+=======
+                // ... (omitted where clause)
+                required: true,
+                include: [
+                    { // For rating calculation
+                        model: Testimonial,
+                        as: 'testimonials',
+                        attributes: ['rating'], 
+                        required: false,
+                    },
+                    { // For price calculation
+                        model: Session,
+                        as: 'sessions', 
+                        attributes: ['price'], 
+                        required: false,
+                    }
+                ]
+            },
+        ],
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         group: ['User.id', 'CoachProfile.id', 'CoachProfile.testimonials.id', 'CoachProfile.sessions.id']
     });
 
@@ -654,4 +773,51 @@ export const getFollowedCoaches = async (req, res) => {
         console.error('Error fetching followed coaches:', error);
         res.status(500).json({ error: 'Failed to fetch followed coaches' });
     }
+<<<<<<< HEAD
 };
+=======
+};
+
+
+// ==============================
+// NEW: GET Clients Who Follow This Coach
+// ==============================
+export const getClientsWhoFollow = async (req, res) => {
+    try {
+        const coachId = req.user.userId; 
+
+        // 1. Find all Follow records where the current coach is the 'followingId'
+        const followerRecords = await Follow.findAll({
+            where: { followingId: coachId },
+            attributes: ['followerId'] 
+        });
+        
+        const followerIds = followerRecords.map(record => record.get('followerId'));
+
+        if (followerIds.length === 0) {
+            return res.status(200).json({ clients: [] });
+        }
+        
+        // 2. Fetch the full User data for all followers, ensuring they are clients
+        const clients = await User.findAll({
+            where: { 
+                id: { [Op.in]: followerIds },
+                roles: { [Op.like]: '%"client"%' } // Optional: Filter for only 'client' roles
+            },
+            attributes: ['id', 'firstName', 'lastName', 'email', 'profilePicture', 'roles'],
+            include: [
+                { model: ClientProfile, as: 'ClientProfile', required: false, attributes: ['coachingGoals'] }
+            ]
+        });
+
+        const processedClients = clients.map(client => client.get({ plain: true }));
+
+        return res.status(200).json({ clients: processedClients });
+
+    } catch (error) {
+        console.error('Error fetching clients who follow coach:', error);
+        return res.status(500).json({ error: 'Failed to fetch follower clients.' });
+    }
+};
+
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8

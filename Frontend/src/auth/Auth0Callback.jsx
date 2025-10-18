@@ -7,8 +7,16 @@ import axios from 'axios';
 import Icon from '../components/AppIcon';
 
 const Auth0Callback = () => {
+<<<<<<< HEAD
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const { setAccessToken, setUser } = useAuth();
+=======
+  // ⚠️ TEMPORARILY DISABLED Auth0 Social Login
+  /*
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  // FIX 1: Correctly de-structure the 'login' function from AuthContext
+  const { login } = useAuth();
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +35,10 @@ const Auth0Callback = () => {
           return navigate('/user-login?error=no_token', { replace: true });
         }
 
+<<<<<<< HEAD
+=======
+        // Exchange the Auth0 token for your backend token
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         const response = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/auth/social-login`,
           {},
@@ -40,6 +52,7 @@ const Auth0Callback = () => {
         const backendToken = response?.data?.accessToken;
         const backendUser = response?.data?.user;
 
+<<<<<<< HEAD
         if (backendToken) {
           localStorage.setItem("accessToken", backendToken);
           setAccessToken(backendToken);
@@ -73,6 +86,15 @@ const Auth0Callback = () => {
           }
         } else {
           console.error("No access token returned from backend.");
+=======
+        if (backendToken && backendUser) {
+          // FIX 2: Use the unified login function from AuthContext. 
+          // This function handles saving token, setting user, checking roles, and redirecting 
+          // (including the redirection to /welcome-setup for users without a role).
+          login({ accessToken: backendToken, user: backendUser });
+        } else {
+          console.error("Missing token or user data from backend.");
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
           navigate('/user-login?error=backend_failed', { replace: true });
         }
       } catch (error) {
@@ -82,7 +104,19 @@ const Auth0Callback = () => {
     };
 
     processAuth0Login();
+<<<<<<< HEAD
   }, [isAuthenticated, getAccessTokenSilently, setAccessToken, setUser, navigate]);
+=======
+    // FIX 3: Updated dependency array
+  }, [isAuthenticated, getAccessTokenSilently, login, navigate]); 
+  */
+
+  // ADDED: Immediate redirect when flow is disabled
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate('/login', { replace: true });
+  }, [navigate]);
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -91,10 +125,17 @@ const Auth0Callback = () => {
           <Icon name="Loader2" size={32} className="text-primary" />
         </div>
         <h1 className="text-xl font-medium text-foreground">
+<<<<<<< HEAD
           Completing your login...
         </h1>
         <p className="text-sm text-muted-foreground mt-2">
           Please wait while we set up your account.
+=======
+          Redirecting...
+        </h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          Social login is temporarily disabled.
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         </p>
       </div>
     </div>

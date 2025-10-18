@@ -3,6 +3,7 @@
 const Session = require('../models/Session');
 const CoachProfile = require('../models/CoachProfile');
 const { Op } = require('sequelize');
+<<<<<<< HEAD
 
 // ==============================
 // Helper: Sanitize & Map Data
@@ -23,6 +24,28 @@ const sanitizeSessionData = (data) => {
         type: data.type, 
 
         // Map Duration/Price/Description
+=======
+const Booking = require('../models/Booking'); // 🚨 FIX: ADDED MISSING IMPORT
+const User = require('../models/user');       // 🚨 FIX: ADDED MISSING IMPORT
+
+// ==============================
+// Helper: Sanitize & Map Data (UPDATED)
+// ==============================
+const sanitizeSessionData = (data) => {
+    // Frontend is expected to send 'title', 'type', 'duration', and 'price'.
+    
+    // Ensure price and duration are correctly typed
+    const duration = parseInt(data.duration, 10) || 0; // Default to 0 if invalid
+    const price = parseFloat(data.price) || 0.0;     // Default to 0.0 if invalid
+    
+    return {
+        // Ensure required fields map correctly
+        title: data.title || data.name || 'Untitled Session', 
+        
+        // This is the "section type" field you asked about.
+        type: data.type || 'individual', // Default to 'individual' if missing
+
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         duration: duration, 
         price: price, 
         description: data.description || null,
@@ -51,7 +74,10 @@ const createSession = async (req, res) => {
 
         const sanitizedData = sanitizeSessionData(data);
         
+<<<<<<< HEAD
         // This line is where the Sequelize validation error occurred.
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         const newSession = await Session.create({
             coachProfileId: coachProfile.id,
             ...sanitizedData, // Now contains a valid 'title' field
@@ -64,13 +90,20 @@ const createSession = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating session:', error);
+<<<<<<< HEAD
         // This is necessary to debug validation errors during development
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
         if (error.name === 'SequelizeValidationError') {
             console.error('Sequelize Validation Errors:', error.errors.map(e => e.message));
         }
         return res.status(500).json({ error: 'Failed to create session' });
     }
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 // ==========================================
 // 2. UPDATE SESSION
 // ==========================================
@@ -144,8 +177,83 @@ const deleteSession = async (req, res) => {
     }
 };
 
+<<<<<<< HEAD
 module.exports = {
     createSession,
     updateSession,
     deleteSession
+=======
+
+// ==========================================
+// 4. BOOK SESSION (Copied from previous step for completeness)
+// ==========================================
+const bookSession = async (req, res) => {
+    try {
+        const clientId = req.user.userId;
+        const { sessionId } = req.params;
+        
+        const session = await Session.findByPk(sessionId);
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found.' });
+        }
+        
+        const booking = await Booking.create({ clientId, sessionId, status: 'confirmed' });
+
+        return res.status(201).json({ message: 'Session booked successfully.', booking });
+    } catch (error) {
+        console.error("Session Booking Error:", error);
+        return res.status(500).json({ error: 'Failed to book session.' });
+    }
+};
+
+
+// ==========================================
+// 5. GET COACH SESSION BOOKINGS (FIXED)
+// ==========================================
+const getCoachSessionBookings = async (req, res) => {
+    try {
+        const coachId = req.user.userId;
+        
+        const coachProfile = await CoachProfile.findOne({ where: { userId: coachId } });
+        if (!coachProfile) {
+             return res.status(404).json({ error: 'Coach profile not found.' });
+        }
+        const coachProfileId = coachProfile.id;
+
+        const bookings = await Booking.findAll({
+            where: { 
+                sessionId: { [Op.ne]: null } // Only look for Session bookings
+            },
+            include: [
+                {
+                    model: Session,
+                    as: 'Session', // 🚨 CRITICAL FIX: Use the 'Session' alias matching server.js
+                    required: true,
+                    where: { coachProfileId: coachProfileId }, // Filter by this coach's sessions
+                    attributes: ['id', 'title', 'duration', 'price', 'type', 'defaultDate', 'defaultTime', 'meetingLink'],
+                },
+                {
+                    model: User,
+                    as: 'client', // Alias for the client user
+                    attributes: ['id', 'firstName', 'lastName', 'email', 'profilePicture']
+                }
+            ],
+            order: [['bookedAt', 'DESC']]
+        });
+        
+        return res.json(bookings);
+
+    } catch (error) {
+        console.error("Coach Session Bookings Error:", error);
+        return res.status(500).json({ error: 'Failed to fetch coach session bookings.' });
+    }
+};
+
+module.exports = {
+    createSession,
+    updateSession,
+    deleteSession,
+    bookSession,
+    getCoachSessionBookings // <-- EXPORTED
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 };

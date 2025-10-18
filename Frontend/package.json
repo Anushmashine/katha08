@@ -2,6 +2,7 @@
   "name": "coachflow",
   "version": "0.1.0",
   "private": true,
+<<<<<<< HEAD
   "rocketCritical": {
     "dependencies": [
       "@dhiwise/component-tagger",
@@ -29,6 +30,10 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.5.0",
     "@dhiwise/component-tagger": "^1.0.10",
+=======
+  "dependencies": {
+    "@auth0/auth0-react": "^2.5.0",
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@reduxjs/toolkit": "^2.6.1",

@@ -171,7 +171,14 @@ const RegistrationForm = ({ onSubmit, isLoading }) => {
       <div className="text-center">
         <p className="text-sm text-gray-600">
           Already have an account?{' '}
+<<<<<<< HEAD
           <Link to="/login" className="text-indigo-600 hover:underline font-medium">
+=======
+          <Link 
+            to="/login" // <-- FIXED: Was /user-login, now correctly points to /login
+            className="text-indigo-600 hover:underline font-medium"
+          >
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
             Sign in here
           </Link>
         </p>

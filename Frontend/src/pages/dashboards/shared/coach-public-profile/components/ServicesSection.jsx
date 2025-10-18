@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import Icon from '@/components/AppIcon';
 import Button from '@/components/ui/Button';
@@ -8,20 +9,40 @@ import { Clock, DollarSign, Users, Tag, TrendingUp } from 'lucide-react'; // Add
 
 const ServicesSection = ({ coach, onServiceClick }) => {
   // Removed state for activeTab since we're only showing Sessions now
+=======
+import React, { useState } from 'react';
+import Icon from '@/components/AppIcon';
+import Button from '@/components/ui/Button';
+import { Clock, Tag, DollarSign, TrendingUp, ArrowRight } from 'lucide-react';
+// We keep useAuth just for clarity, but the core logic relies on the server-side auth check
+import { useAuth } from '@/auth/AuthContext'; 
+import { bookSession } from '@/auth/authApi';
+import { toast } from 'sonner';
+
+const ServicesSection = ({ coach }) => {
+  // We keep useAuth to access roles and data, but won't block the button based on it
+  const { isAuthenticated, roles, user } = useAuth(); 
+  const [bookingSessionId, setBookingSessionId] = useState(null); 
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 
   const formatPrice = (price) => {
     const p = parseFloat(price);
     if (p === 0) return 'FREE';
+<<<<<<< HEAD
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     })?.format(p);
+=======
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(p);
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
   };
 
   const formatDuration = (minutes) => {
     const m = parseInt(minutes, 10);
     if (m < 60) return `${m} min`;
     const hours = Math.floor(m / 60);
+<<<<<<< HEAD
     const remainingMinutes = m % 60;
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
   };
@@ -38,6 +59,45 @@ const ServicesSection = ({ coach, onServiceClick }) => {
   // --- Start of JSX ---
 
   // Check if availableSessions exists and is an array, defaulting to an empty array
+=======
+    const remaining = m % 60;
+    return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
+  };
+
+  const getButtonConfig = (sessionType) => {
+    if (!sessionType) return { label: 'Purchase/Book', icon: 'ArrowRight', variant: 'default' };
+    const type = sessionType.toLowerCase();
+    if (type.includes('subscription') || type.includes('package')) {
+      return { label: 'Subscribe Now', icon: 'TrendingUp', variant: 'success' };
+    }
+    return { label: 'Purchase/Book', icon: 'ArrowRight', variant: 'default' };
+  };
+
+  const handleBookSession = async (sessionId, sessionTitle) => {
+    
+    // 🚨 REMOVED CHECKS: We are removing the frontend isAuthenticated and isClient checks
+    // The server will handle authorization based on the user's token.
+    
+    if (!window.confirm(`Confirm booking for: ${sessionTitle}?`)) return;
+
+    setBookingSessionId(sessionId); 
+
+    try {
+      // The backend /api/coach/public/:sessionId/book route still validates the token and role.
+      await bookSession(sessionId);
+      toast.success(`Successfully booked: ${sessionTitle}! View it in My Sessions.`);
+    } catch (err) {
+      console.error("Booking Error:", err);
+      // If the backend fails (e.g., token expired or not a client), this catch block runs
+      // and shows the error message returned from the server.
+      const errorMsg = err.response?.data?.error || err.message || 'Booking failed due to server error.';
+      toast.error(errorMsg);
+    } finally {
+      setBookingSessionId(null);
+    }
+  };
+
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
   const availableSessions = Array.isArray(coach?.availableSessions) ? coach.availableSessions : [];
 
   return (
@@ -45,6 +105,7 @@ const ServicesSection = ({ coach, onServiceClick }) => {
       <h2 className="text-2xl font-heading font-semibold text-foreground mb-6">
         Digital Services Offered
       </h2>
+<<<<<<< HEAD
       
       {/* Sessions List - Replaces the tab content */}
       <div className="space-y-4">
@@ -52,6 +113,15 @@ const ServicesSection = ({ coach, onServiceClick }) => {
           availableSessions.map((session) => {
             const { label: buttonLabel, icon: buttonIconName, variant: buttonVariant } = getButtonConfig(session?.type);
             
+=======
+
+      <div className="space-y-4">
+        {availableSessions.length > 0 ? (
+          availableSessions.map((session) => {
+            const { label, icon, variant } = getButtonConfig(session?.type);
+            const isLoading = bookingSessionId === session?.id;
+
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
             return (
               <div
                 key={session?.id}
@@ -59,6 +129,7 @@ const ServicesSection = ({ coach, onServiceClick }) => {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 pr-4">
+<<<<<<< HEAD
                     <h3 className="font-semibold text-foreground mb-1">
                       {session?.title}
                     </h3>
@@ -70,6 +141,13 @@ const ServicesSection = ({ coach, onServiceClick }) => {
                     <div className="text-xl font-bold text-primary">
                       {formatPrice(session?.price)}
                     </div>
+=======
+                    <h3 className="font-semibold text-foreground mb-1">{session?.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-2">{session?.description}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xl font-bold text-primary">{formatPrice(session?.price)}</div>
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
                     <div className="text-sm text-muted-foreground">
                       {session?.price > 0 ? 'per session' : 'free offer'}
                     </div>
@@ -87,6 +165,7 @@ const ServicesSection = ({ coach, onServiceClick }) => {
                       <span className="capitalize">{session?.type || 'Individual'}</span>
                     </div>
                   </div>
+<<<<<<< HEAD
                   <Button
                     variant={buttonVariant}
                     size="sm"
@@ -95,6 +174,19 @@ const ServicesSection = ({ coach, onServiceClick }) => {
                     iconPosition="right"
                   >
                     {buttonLabel}
+=======
+
+                  <Button
+                    variant={variant}
+                    size="sm"
+                    onClick={() => handleBookSession(session?.id, session?.title)}
+                    iconName={icon}
+                    iconPosition="right"
+                    loading={isLoading} 
+                    disabled={isLoading} 
+                  >
+                    {isLoading ? 'Processing...' : label}
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
                   </Button>
                 </div>
               </div>

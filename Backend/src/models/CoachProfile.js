@@ -2,7 +2,10 @@
 const { DataTypes, UUIDV4 } = require('sequelize');
 const db = require('../config/db');
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5039cd610e06de8f0bd147ed13e01745ccf702e8
 const CoachProfile = db.define('coach_profiles', {
   id: {
     type: DataTypes.CHAR(36),
